@@ -246,7 +246,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
 
   Future<String> _classifyCommandWithLLM(String userSpeech) async {
     const String url =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
     final String? apiKey = dotenv.env['Default_Gemini_API_Key'];
 
     if (apiKey == null || apiKey.isEmpty) return "ERROR";
@@ -459,15 +459,33 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
         });
 
         // 5. Setup Disconnection Listener (Crucial for "Disconnected by remote")
-        connection.input!.listen(null).onDone(() {
-          if (mounted) {
-            setState(() {
-              _hc05Connected = false;
-              _hc05Connection = null;
-            });
-            _log("HC-05 Disconnected");
-          }
-        });
+        connection.input!.listen(
+          (event) {
+            // Handle incoming data here if needed
+            // print('Data: ${ascii.decode(event)}');
+          },
+          onDone: () {
+            // Call when connection closes normally
+            if (mounted) {
+              setState(() {
+                _hc05Connected = false;
+                _hc05Connection = null;
+              });
+              _log("HC-05 Disconnected (Done)");
+              _showErrorDialog("Disconnected", "Device connection lost.");
+            }
+          },
+          onError: (error) {
+            // Call when connection closes with error
+            if (mounted) {
+              setState(() {
+                _hc05Connected = false;
+                _hc05Connection = null;
+              });
+              _log("HC-05 Disconnected (Error)");
+            }
+          },
+        );
       } catch (e) {
         // 6. Failure: Show Error
         if (mounted) {
@@ -629,6 +647,17 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
             ),
           ],
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16),
+            child: Icon(
+              _hc05Connected
+                  ? Icons.bluetooth_connected
+                  : Icons.bluetooth_disabled,
+              color: _hc05Connected ? kAccentBlue : kTextGray,
+            ),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -698,7 +727,7 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
             ),
             const SizedBox(height: 12),
 
-            // --- HISTORY LIST ---
+            // --- HISTORY LIST (Simplified Version) ---
             Expanded(
               child: ListView.builder(
                 itemCount: historyLogs.length,
@@ -717,76 +746,26 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
                     ),
                     child: Row(
                       children: [
-                        // Status Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: kAccentGreen.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: kAccentGreen.withOpacity(0.5),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                size: 12,
-                                color: kAccentGreen,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                log['status']!,
-                                style: const TextStyle(
-                                  color: kAccentGreen,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Time
-                        Text(
-                          log['time']!,
-                          style: const TextStyle(
-                            color: kTextGray,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Command Code Style
+                        // 1. COMMAND TEXT ONLY
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                          child: Text(
+                            log['cmd']!,
+                            style: const TextStyle(
+                              fontFamily: 'Courier',
+                              color: kAccentBlue,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
-                            decoration: BoxDecoration(
-                              color: kCodeBg,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              log['cmd']!,
-                              style: const TextStyle(
-                                fontFamily: 'Courier',
-                                color: kAccentBlue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 8),
+
+                        // 2. DELETE BUTTON
                         IconButton(
                           icon: const Icon(
                             Icons.delete_outline,
                             color: kTextGray,
-                            size: 18,
+                            size: 20,
                           ),
                           onPressed: () {
                             setState(() {
