@@ -258,7 +258,8 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
     [GEARS]: HIGH, LOW
     [LIGHTS]: RED, BLUE, GREEN
     [MUSIC]: PLAY_MUSIC, STOP_MUSIC, VOL_UP, VOL_DOWN
-    Rules: Return ONLY the command word. If unknown, return UNKNOWN.
+
+    Rules: Return ONLY the command word. If unknown, return UNKNOWN. If asked about what love is, return WHAT_IS_LOVE.
     """;
 
     try {
@@ -364,6 +365,9 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
         break;
       case "PLAY_MUSIC":
         _startMusicSync();
+        break;
+      case "WHAT_IS_LOVE":
+        _sendToHC05("WH");
         break;
       case "STOP_MUSIC":
         _stopMusicSync();
