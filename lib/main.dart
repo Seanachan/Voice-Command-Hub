@@ -253,12 +253,11 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
 
     String systemPrompt = """
     You are a robot controller. Map the user's speech to one of these EXACT commands:
-    [MOVEMENT]: FORWARD, REVERSE, PARK
+    [MOVEMENT]: FORWARD, REVERSE, PARK, GOGO
     [STEERING]: TURN_LEFT, TURN_RIGHT, STRAIGHT
-    [GEARS]: HIGH_SPEED, LOW_SPEED
+    [GEARS]: HIGH, LOW
     [LIGHTS]: RED, BLUE, GREEN
     [MUSIC]: PLAY_MUSIC, STOP_MUSIC, VOL_UP, VOL_DOWN
-    [OTHER]: HONK
     Rules: Return ONLY the command word. If unknown, return UNKNOWN.
     """;
 
@@ -296,9 +295,10 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
 
   String _fallbackSimpleLogic(String text) {
     String t = text.toLowerCase();
-    if (t.contains("forward") || t.contains("go")) return "FORWARD";
+    if (t.contains("forward")) return "FORWARD";
     if (t.contains("back")) return "REVERSE";
     if (t.contains("park") || t.contains("stop")) return "PARK";
+    if (t.contains("go")) return "GOGO";
     if (t.contains("left")) return "TURN_LEFT";
     if (t.contains("right")) return "TURN_RIGHT";
     if (t.contains("straight")) return "STRAIGHT";
@@ -328,40 +328,38 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
     }
 
     switch (command) {
+      case "GOGO":
+        _sendToHC05("GO");
+        break;
       case "FORWARD":
-        _sendToHC05("FORWARD");
+        _sendToHC05("FO");
         break;
       case "REVERSE":
-        _sendToHC05("REVERSE");
+        _sendToHC05("RE");
         break;
       case "PARK":
-        _sendToHC05("PARK");
+        _sendToHC05("PA");
         break;
       case "TURN_LEFT":
-        _sendToHC05("TURN_LEFT");
+        _sendToHC05("LE");
         break;
       case "TURN_RIGHT":
-        _sendToHC05("TURN_RIGHT");
+        _sendToHC05("RI");
         break;
-      case "STRAIGHT":
-        _sendToHC05("STRAIGHT");
+      case "HIGH":
+        _sendToHC05("HI");
         break;
-      case "HIGH_SPEED":
-        _sendToHC05("HIGH_SPEED");
-        break;
-      case "LOW_SPEED":
-        _sendToHC05("LOW_SPEED");
+      case "LOW":
+        _sendToHC05("LO");
         break;
       case "RED":
         _sendToHC05("RED");
         _sendPacket(0x20, 255, 0, 0, 255);
         break;
       case "BLUE":
-        _sendToHC05("BLUE");
         _sendPacket(0x20, 0, 0, 255, 255);
         break;
       case "GREEN":
-        _sendToHC05("GREEN");
         _sendPacket(0x20, 0, 255, 0, 255);
         break;
       case "PLAY_MUSIC":
@@ -371,13 +369,10 @@ class _VoiceHubScreenState extends State<VoiceHubScreen> {
         _stopMusicSync();
         break;
       case "VOL_UP":
-        _sendToHC05("VOL_UP");
+        _sendToHC05("UP");
         break;
       case "VOL_DOWN":
-        _sendToHC05("VOL_DOWN");
-        break;
-      case "HONK":
-        _sendToHC05("HONK");
+        _sendToHC05("DO");
         break;
     }
   }
